@@ -39,7 +39,7 @@ function getItem(
 }
 
 const items: MenuItem[] = [
-  getItem('Trang HustCV', '1', <HomeOutlined />),
+  getItem('Trang Nutrition-Diary', '1', <HomeOutlined />),
   getItem('Admin', 'sub1', <UserOutlined />, [
     getItem('Đăng xuất', '3', <LogoutOutlined />),
     getItem('Đổi mật khẩu', '4', <UserSwitchOutlined />),
@@ -127,7 +127,7 @@ const App: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
         <div style={{ height: '60px',display: 'flex', justifyContent: 'center' }}>
-          <h1>CV</h1>
+          <h1>10</h1>
         </div>
         <Menu onClick={handleClick}
           theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
@@ -153,7 +153,7 @@ const App: React.FC = () => {
             )}
           </div>
         </Content>
-        <Footer style={{ textAlign: 'center' }}>Bản quyền thuộc về (HustCV)</Footer>
+        <Footer style={{ textAlign: 'center' }}>Bản quyền thuộc về (Nutrition-Diary)</Footer>
       </Layout>
     </Layout>
     </>

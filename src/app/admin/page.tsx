@@ -2,19 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import { config } from '@/config/config';
 import {
+
   HomeOutlined,
   TeamOutlined,
   UserOutlined,
   LogoutOutlined,
   UserSwitchOutlined,
   SolutionOutlined,
+
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import { useRouter } from 'next/navigation'
 import { getCookie } from '@/getCookie/getCookie';
 import deleteCookie from '@/getCookie/deleteCookie';
-import Apptable from '@/components/table';
+import AppTable from '@/components/table';
+import PostTable from '@/components/tablePost';
 const { Header, Content, Footer, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -44,7 +47,12 @@ const items: MenuItem[] = [
     getItem('Đăng xuất', '3', <LogoutOutlined />),
     getItem('Đổi mật khẩu', '4', <UserSwitchOutlined />),
   ]),
-  getItem('Menu', 'sub2', <TeamOutlined />, [getItem('Tài khoản', '5', <SolutionOutlined />)]),
+  getItem('Menu', 'sub2', <TeamOutlined />, [
+    getItem('Tài khoản', '5', <SolutionOutlined />),
+    getItem('Bài đăng', '6', <SolutionOutlined/>)
+  ]),
+
+
 ];
 interface AdminData {
     id: BigInteger;
@@ -56,11 +64,12 @@ interface AdminData {
 const App: React.FC = () => {
   const router = useRouter();
   const [usersData, setUsersData] = useState(null);
+  const [postsData, setPostsData] = useState(null);
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [activeMenuItem, setActiveMenuItem] = useState('1'); // Default to the home item
 
   useEffect(() => {
-    // Function to check the token
     const checkTokenValidity = async () => {
       try {
         const token = getCookie('token');
@@ -71,7 +80,7 @@ const App: React.FC = () => {
           },
         });
         const data = await response.json();
-        // console.log(data)
+
         if (response.ok) {
           setAdminData(data.admin);
         } else {
@@ -79,84 +88,107 @@ const App: React.FC = () => {
         }
       } catch (error) {
         console.error(error);
-        // Handle error
       }
     };
 
-    // Call the function to check token validity
     checkTokenValidity();
-  }, []); // Empty dependency array to run only once on component mount
+  }, [router]);
+
   const reloadTableData = async () => {
     const token = getCookie('token');
-    await fetch(`${config.apiUrl}/admin/allUser`, {
+    const response = await fetch(`${config.apiUrl}/admin/allUser`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data) {
-        // console.log(data)
-        setUsersData(data);
-      }
-    })
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setUsersData(data);
+    }
+  }
+
+  const reloadTableDataPost = async () => {
+    const token = getCookie('token');
+    const response = await fetch(`${config.apiUrl}/admin/allPost/report`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    console.log(data);
+
+    if (response.ok) {
+      setPostsData(data);
+      console.log("postData:",postsData);
+    }
   }
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   const handleClick = ({ key }: { key: React.Key }) => {
-    if (key == 3) {
+    setActiveMenuItem(key.toString());
+    if (key === '3') {
       deleteCookie('token');
       router.push('/login');
-    }
-    else if (key == 5) {
+    } else if (key === '5') {
       reloadTableData();
-    }
-    else if (key == 4) {
+    } else if (key === '6') {
+      reloadTableDataPost();
+    } else if (key === '4') {
       router.push('/changePassword');
+    } else {
+      router.push('/admin');
     }
-    else{
-      window.location.href ='https://google.com';
-    };
-
   };
-  return (
-    <>
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-        <div style={{ height: '60px',display: 'flex', justifyContent: 'center' }}>
-          <h1>10</h1>
-        </div>
-        <Menu onClick={handleClick}
-          theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
-      </Sider>
-      <Layout>
-        <Header style={{ padding: '10px 20px', background: colorBgContainer }}><h3>Chào mừng {adminData?.fullName} đến với trang quản trị</h3></Header>
 
-        <Content style={{ margin: '0 16px' }}>
-          <Breadcrumb style={{ margin: '10px 0' }}>
-          </Breadcrumb>
-          <div
-            style={{
-              padding: 24,
-              minHeight: 60,
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG,
-            }}
-          >
-            {usersData ? (
-              <Apptable blogs={usersData} customFunction={reloadTableData} />
-            ) : (
-              <h3>Trang chủ</h3>
-            )}
-          </div>
-        </Content>
-        <Footer style={{ textAlign: 'center' }}>Bản quyền thuộc về (Nutrition-Diary)</Footer>
-      </Layout>
-    </Layout>
-    </>
+  return (
+      <>
+        <Layout style={{ minHeight: '100vh' }}>
+          <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+            <div style={{ height: '60px',display: 'flex', justifyContent: 'center' }}>
+              <h1>10</h1>
+            </div>
+            <Menu onClick={handleClick} theme="dark" selectedKeys={[activeMenuItem]} mode="inline" items={items} />
+          </Sider>
+          <Layout>
+            <Header style={{ padding: '10px 20px', background: colorBgContainer }}>
+              <h3>Chào mừng {adminData?.fullName} đến với trang quản trị</h3>
+            </Header>
+            <Content style={{margin: '0 16px'}}>
+              <Breadcrumb style={{margin: '10px 0'}}></Breadcrumb>
+              <div
+                  style={{
+                    padding: 24,
+                    minHeight: 60,
+                    background: colorBgContainer,
+                    borderRadius: borderRadiusLG,
+                  }}
+              >
+                {activeMenuItem === '5' && usersData ? (
+                    <div>
+                      <h3>Danh sách người dùng</h3>
+                      <AppTable blogs={usersData} customFunction={reloadTableData}/>
+                    </div>
+                ) : null}
+
+                {activeMenuItem === '6' && postsData ? (
+                    <div>
+                      {/*<h3>Danh sách bài đăng</h3>*/}
+                      <PostTable blogs={postsData} customFunction={reloadTableDataPost}/>
+                    </div>
+                ) : null}
+                {activeMenuItem === '1' && (
+                    <h3>Trang chủ</h3>
+                )}
+              </div>
+            </Content>
+            <Footer style={{ textAlign: 'center' }}>Bản quyền thuộc về (Nutrition-Diary)</Footer>
+          </Layout>
+        </Layout>
+      </>
   );
 };
 

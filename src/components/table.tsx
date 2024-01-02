@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
-import { Table, Button } from 'react-bootstrap';
+import { Table, Button, Form } from 'react-bootstrap';
 import { message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilter } from '@fortawesome/free-solid-svg-icons';
-import UserInfoModal from './userInfoModal'; // Update the correct path for UserInfoModal
+import { faFilter} from '@fortawesome/free-solid-svg-icons';
+import UserInfoModal from './userInfoModal';
 import { getCookie } from '@/getCookie/getCookie';
 import { config } from '@/config/config';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-interface UserData {
+interface UserData{
     id: number;
     name: string;
     email: string;
     status: boolean;
     createdAt: string;
     updatedAt: string;
-    isDeleting: boolean;
 }
 
 interface FilterState {
@@ -28,7 +26,7 @@ interface Props {
     customFunction: () => void;
 }
 
-const Apptable = (props: Props) => {
+const AppTable:  React.FC<Props> = (props) => {
     let token = getCookie('token');
     const { blogs, customFunction } = props;
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
@@ -38,7 +36,7 @@ const Apptable = (props: Props) => {
     const [messageApi, contextHolder] = message.useMessage();
     const key = 'updatable';
 
-    const openMessageSuccess = (text: string) => {
+    const openMessageSuccess = (text:string) => {
         messageApi.open({
             key,
             type: 'loading',
@@ -47,14 +45,13 @@ const Apptable = (props: Props) => {
         setTimeout(() => {
             messageApi.open({
                 key,
-                type: 'success',
+                type:'success',
                 content: text,
                 duration: 2,
             });
         }, 500);
     };
-
-    const openMessageError = (text: string) => {
+    const openMessageError = (text:string) => {
         messageApi.open({
             key,
             type: 'loading',
@@ -63,26 +60,29 @@ const Apptable = (props: Props) => {
         setTimeout(() => {
             messageApi.open({
                 key,
-                type: 'error',
+                type:'error',
                 content: text,
                 duration: 2,
             });
         }, 500);
     };
-
+    // State cho bộ lọc
     const [filters, setFilters] = useState<FilterState>({
         username: '',
         email: '',
     });
 
+    // Hàm cập nhật giá trị bộ lọc
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFilters((prevFilters) => ({ ...prevFilters, [name]: value }));
+        setFilters(prevFilters => ({ ...prevFilters, [name]: value }));
     };
 
+    // Hàm xử lý khi nhấn tìm kiếm
     const handleSearch = async () => {
-        const { username, email } = filters;
+        const { username, email, } = filters;
         try {
+
             let endpoint = '';
             let body = {};
 
@@ -95,11 +95,11 @@ const Apptable = (props: Props) => {
             } else if (email) {
                 endpoint = '/admin/allUserByEmail';
                 body = { email };
-            } else {
-                openMessageError('Vui lòng nhập nội dung tìm kiếm');
+            }
+            else {
+                openMessageError("Vui lòng nhập nội dung tìm kiếm")
                 return;
             }
-
             const response = await fetch(`${config.apiUrl}${endpoint}`, {
                 method: 'POST',
                 headers: {
@@ -110,23 +110,29 @@ const Apptable = (props: Props) => {
             });
 
             if (!response.ok) {
-                openMessageError('Không tìm thấy tài khoản');
-            } else {
+                openMessageError('Không tìm thấy tài khoản')
+            }
+            else {
                 const data = await response.json();
-                openMessageSuccess('Success');
+                // openMessageSuccess('Success')
                 setFilteredUsers(data);
                 setIsFiltering(true);
             }
+
         } catch (error) {
             openMessageError('Error during fetch');
         }
     };
 
+
+
+    // Hàm xử lý khi nhấn reset
     const handleReset = () => {
         setFilters({ username: '', email: '' });
         setIsFiltering(false);
         customFunction();
     };
+
 
     const handleUserNameClick = (user: UserData) => {
         setSelectedUser(user);
@@ -137,11 +143,11 @@ const Apptable = (props: Props) => {
     };
 
     const handleButtonEvent = async (e: React.MouseEvent, blog: UserData) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Prevents the row click event from being triggered
         const status = blog.status;
-        const userConfirmed = window.confirm(`Bạn có chắc ${status ? 'khóa' : 'mở khóa'} tài khoản ${blog.name}`);
+        const userConfirmed = window.confirm(`Bạn có chắc ${status?'khóa':'mở khóa'} tài khoản ${blog.name}`);
         if (!userConfirmed) {
-            return;
+            return; // User canceled the deletion
         }
         try {
             const response = await fetch(`${config.apiUrl}/admin/updateUser/${blog.id}`, {
@@ -154,27 +160,30 @@ const Apptable = (props: Props) => {
             });
 
             if (!response.ok) {
-                throw new Error(`Request failed with status ${response.status}`);
+                // throw new Error(`Request failed with status ${response.status}`);
+                openMessageError(`Request failed`);
             }
 
             const updatedUser = await response.json();
             openMessageSuccess(updatedUser);
             customFunction();
+            if(isFiltering){
+                handleSearch();
+            }
         } catch (error) {
-            openMessageError('Đã có lỗi xảy ra');
+            openMessageError('Đã có lỗi xảy ra')
         }
     };
-
-    const handleDeleteAccount = async (e: React.MouseEvent, blog: UserData) => {
+    const handleDeleteAccount = async (e: React.MouseEvent, user: UserData) => {
         e.stopPropagation();
-        const userConfirmed = window.confirm(`Bạn có chắc muốn xoá tài khoản ${blog.name}`);
+        const userConfirmed = window.confirm(`Bạn có chắc muốn xoá tài khoản ${user.name}`);
         if (!userConfirmed) {
             return;
         }
         setIsDeleting(true);
 
-        try {  let deletedUser
-               const  response = await fetch(`${config.apiUrl}/admin/deleteUser/${blog.id}`, {
+        try {
+            const response = await fetch(`${config.apiUrl}/admin/deleteUser/${user.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -183,23 +192,25 @@ const Apptable = (props: Props) => {
             });
 
             if (!response.ok) {
-                throw new Error(`Request failed with status ${response.status}`);
+                // throw new Error(`Request failed with status ${response.status}`);
+                openMessageError(`Request failed`);
             }
 
-            deletedUser = await response.json();
-
-            openMessageSuccess(deletedUser);
+            const deletedUser = await response.json();
+            openMessageSuccess( deletedUser);
             customFunction();
+            if(isFiltering){
+                handleSearch();
+            }
         } catch (error) {
-            openMessageError('Bạn không có quyền xoá tài khoản này');
+            openMessageError('Bạn không có quyền xoá tài khoản này')
         } finally {
             setIsDeleting(false);
         }
     };
 
     return (
-        <>
-            {contextHolder}
+        <>{contextHolder}
             <div className="container mb-4">
                 <div className="row">
                     <div className="col-md-6">
@@ -207,10 +218,10 @@ const Apptable = (props: Props) => {
                     </div>
                     <div className="col-md-6 d-flex justify-content-end">
                         <div>
-                            <Button variant="primary" size="sm" onClick={handleSearch}>
+                            <Button variant="primary" size='sm' onClick={handleSearch}>
                                 Tìm kiếm
                             </Button>{' '}
-                            <Button variant="secondary" size="sm" onClick={handleReset}>
+                            <Button variant="secondary" size='sm' onClick={handleReset}>
                                 Reset
                             </Button>
                         </div>
@@ -226,6 +237,7 @@ const Apptable = (props: Props) => {
                             onChange={handleFilterChange}
                         />
                     </div>
+
                     <div className="col-md-4">
                         <label>Email:</label>
                         <input
@@ -235,26 +247,26 @@ const Apptable = (props: Props) => {
                             onChange={handleFilterChange}
                         />
                     </div>
-
                 </div>
+
             </div>
             <Table striped bordered hover className="custom-table">
                 <thead>
                 <tr>
                     <th>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>STT</div>
+                        <div style={{display: 'flex', justifyContent: 'center'}}>STT</div>
                     </th>
                     <th>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>Tài khoản</div>
+                        <div style={{display: 'flex', justifyContent: 'center'}}>Tài khoản</div>
                     </th>
                     <th>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>Email</div>
+                        <div style={{display: 'flex', justifyContent: 'center'}}>Email</div>
                     </th>
                     <th>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>Trạng thái</div>
+                        <div style={{display: 'flex', justifyContent: 'center'}}>Trạng thái</div>
                     </th>
                     <th>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>Xoá tài khoản</div>
+                        <div style={{display: 'flex', justifyContent: 'center'}}>Xoá tài khoản</div>
                     </th>
                 </tr>
                 </thead>
@@ -263,27 +275,22 @@ const Apptable = (props: Props) => {
                     ? filteredUsers.map((blog, index) => (
                         <tr key={index} onClick={() => handleUserNameClick(blog)}>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{index + 1}</div>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>{index + 1}</div>
                             </td>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.name}</div>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>{blog.name}</div>
                             </td>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.email}</div>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>{blog.email}</div>
                             </td>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                                    <Button
-                                        variant={blog.status ? 'success' : 'danger'}
-                                        size="sm"
-                                        onClick={(e) => handleButtonEvent(e, blog)}
-                                    >
-                                        {blog.status ? 'Active' : 'InActive'}
-                                    </Button>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>
+                                    <Button variant={blog.status ? 'success' : 'danger'} size='sm'
+                                            onClick={(e) => handleButtonEvent(e, blog)}>{blog.status ? 'Active' : 'InActive'}</Button>
                                 </div>
                             </td>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                                <div style={{display: 'flex', justifyContent: 'center', gap: '10px'}}>
                                     <Button
                                         variant="danger"
                                         size="sm"
@@ -296,30 +303,27 @@ const Apptable = (props: Props) => {
                             </td>
                         </tr>
                     ))
-                    : blogs.map((blog, index) => (
+                    : Array.isArray(blogs) && blogs.length > 0 && (
+                    blogs.map((blog, index) => (
                         <tr key={index} onClick={() => handleUserNameClick(blog)}>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{index + 1}</div>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>{index + 1}</div>
                             </td>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.name}</div>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>{blog.name}</div>
                             </td>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.email}</div>
+                                <div style={{display: 'flex', justifyContent: 'center'}}>{blog.email}</div>
                             </td>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                                    <Button
-                                        variant={blog.status ? 'success' : 'danger'}
-                                        size="sm"
-                                        onClick={(e) => handleButtonEvent(e, blog)}
-                                    >
-                                        {blog.status ? 'Active' : 'InActive'}
-                                    </Button>
+                                <div style={{display: 'flex', justifyContent: 'center', gap: '10px'}}>
+                                    <Button variant={blog.status ? 'success' : 'danger'} size='sm'
+                                            onClick={(e) => handleButtonEvent(e, blog)}>{blog.status ? 'Active' : 'InActive'}</Button>
                                 </div>
+
                             </td>
                             <td>
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                                <div style={{display: 'flex', justifyContent: 'center', gap: '10px'}}>
                                     <Button
                                         variant="danger"
                                         size="sm"
@@ -331,12 +335,13 @@ const Apptable = (props: Props) => {
                                 </div>
                             </td>
                         </tr>
-                    ))}
+                    )))}
                 </tbody>
             </Table>
-            <UserInfoModal user={selectedUser} show={selectedUser !== null} handleClose={handleCloseModal} />
+            <UserInfoModal user={selectedUser} show={selectedUser !== null} handleClose={handleCloseModal}/>
+
         </>
     );
 };
 
-export default Apptable;
+export default AppTable;

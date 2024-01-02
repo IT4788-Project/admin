@@ -10,13 +10,11 @@ interface UserData {
   createdAt: string;
   updatedAt: string;
 }
-
 interface Props {
   user: UserData | null;
   show: boolean;
   handleClose: () => void;
 }
-
 const UserInfoModal: React.FC<Props> = ({ user, show, handleClose }) => {
   if (!user) return null;
 

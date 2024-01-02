@@ -172,8 +172,9 @@ const Apptable = (props: Props) => {
             return;
         }
         setIsDeleting(true);
-        try {
-            const response = await fetch(`${config.apiUrl}/admin/deleteUser/${blog.id}`, {
+
+        try {  let deletedUser
+               const  response = await fetch(`${config.apiUrl}/admin/deleteUser/${blog.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -185,11 +186,12 @@ const Apptable = (props: Props) => {
                 throw new Error(`Request failed with status ${response.status}`);
             }
 
-            const deletedUser = await response.json();
+            deletedUser = await response.json();
+
             openMessageSuccess(deletedUser);
             customFunction();
         } catch (error) {
-            openMessageError('Đã có lỗi xảy ra');
+            openMessageError('Bạn không có quyền xoá tài khoản này');
         } finally {
             setIsDeleting(false);
         }

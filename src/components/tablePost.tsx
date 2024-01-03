@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Table, Button, Form } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Table, Button } from 'react-bootstrap';
 import { message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilter} from '@fortawesome/free-solid-svg-icons';
+import { faFilter } from '@fortawesome/free-solid-svg-icons';
 import UserInfoModal from './userInfoModal';
 import { getCookie } from '@/getCookie/getCookie';
 import { config } from '@/config/config';
@@ -22,42 +22,30 @@ interface PostData {
     withUserId: number | null;
     author: number | null;
 }
+
 interface Props {
-    blogs:PostData [];
+    blogs: PostData[] | null;
     customFunction: () => void;
 }
-const AppPost = (props: Props) => {
+
+const PostTable:  React.FC<Props> = (props) => {
     let token = getCookie('token');
-    const { blogs, customFunction } = props;
+    const {blogs, customFunction } = props;
     const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [messageApi, contextHolder] = message.useMessage();
-    const key = 'updatable';
-    const openMessageSuccess = (text:string) => {
+
+    const openMessage = (type: 'success' | 'error', text: string) => {
         messageApi.open({
-            key,
+            key: 'updatable',
             type: 'loading',
             content: 'Loading...',
         });
+
         setTimeout(() => {
             messageApi.open({
-                key,
-                type:'success',
-                content: text,
-                duration: 2,
-            });
-        }, 500);
-    };
-    const openMessageError = (text:string) => {
-        messageApi.open({
-            key,
-            type: 'loading',
-            content: 'Loading...',
-        });
-        setTimeout(() => {
-            messageApi.open({
-                key,
-                type:'error',
+                key: 'updatable',
+                type,
                 content: text,
                 duration: 2,
             });
@@ -67,15 +55,19 @@ const AppPost = (props: Props) => {
     const handlePostClick = (post: PostData) => {
         setSelectedPost(post);
     };
+
     const handleCloseModal = () => {
         setSelectedPost(null);
     };
-    const handleDeletePost = async (e: React.MouseEvent, post : PostData) => {
+
+    const handleDeletePost = async (e: React.MouseEvent, post: PostData) => {
         e.stopPropagation();
-        const userConfirmed = window.confirm(`Bạn có chắc muốn xoá tài khoản ${post.id}`);
+        const userConfirmed = window.confirm(`Bạn có chắc muốn xóa bài đăng ${post.id}`);
+
         if (!userConfirmed) {
             return;
         }
+
         setIsDeleting(true);
 
         try {
@@ -88,18 +80,19 @@ const AppPost = (props: Props) => {
             });
 
             if (!response.ok) {
-                openMessageError(`Request failed`);
+                openMessage('error', 'Request failed');
             }
-            const deletedUser = await response.json();
-            openMessageSuccess( deletedUser);
-            customFunction();
 
+            const deletedUser = await response.json();
+            openMessage('success', deletedUser);
+            customFunction();
         } catch (error) {
-            openMessageError('Xoá tài khoản thất bại')
+            openMessage('error', 'Xóa bài đăng thất bại');
         } finally {
             setIsDeleting(false);
         }
     };
+
     return (
         <>
             {contextHolder}
@@ -112,58 +105,43 @@ const AppPost = (props: Props) => {
                 <Table striped bordered hover className="custom-table">
                     <thead>
                     <tr>
-                        <th>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>STT</div>
-                        </th>
-                        <th>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>Nội dung</div>
-                        </th>
-                        <th>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>Số like</div>
-                        </th>
-                        <th>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>Số báo cáo</div>
-                        </th>
-                        <th>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>Xóa bài đăng</div>
-                        </th>
+                        <th style={{display: 'flex', justifyContent: 'center'}}>STT</th>
+                        <th style={{display: 'flex', justifyContent: 'center'}}>Nội dung</th>
+                        <th style={{display: 'flex', justifyContent: 'center'}}>Số like</th>
+                        <th style={{display: 'flex', justifyContent: 'center'}}>Số báo cáo</th>
+                        <th style={{display: 'flex', justifyContent: 'center'}}>Xóa bài đăng</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {Array.isArray(blogs) && blogs.length > 0 && (
+                    {Array.isArray(blogs) && blogs.length > 0 ? (
                         blogs.map((blog, index) => (
-                        <tr key={index} onClick={() => handlePostClick(blog)}>
-                            <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{index + 1}</div>
-                            </td>
-                            <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.content}</div>
-                            </td>
-                            <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.countLike}</div>
-                            </td>
-                            <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.countReport}</div>
-                            </td>
-                            <td>
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <tr key={index} onClick={() => handlePostClick(blog)}>
+                                <td style={{display: 'flex', justifyContent: 'center'}}>{index + 1}</td>
+                                <td style={{display: 'flex', justifyContent: 'center'}}>{blog.content}</td>
+                                <td style={{display: 'flex', justifyContent: 'center'}}>{blog.countLike}</td>
+                                <td style={{display: 'flex', justifyContent: 'center'}}>{blog.countReport}</td>
+                                <td>
                                     <Button
                                         variant="danger"
                                         onClick={(e) => handleDeletePost(e, blog)}
                                         disabled={isDeleting}
                                     >
-                                        Xoá bài đăng
+                                        Xóa bài đăng
                                     </Button>
-                                </div>
-                            </td>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={5}>Loading...</td>
                         </tr>
-                    )))}
+                    )}
                     </tbody>
                 </Table>
-                <PostInfoModal post={selectedPost} show={selectedPost !== null} handleClose={handleCloseModal}/>
+                <PostInfoModal post={selectedPost} show={selectedPost !== null} handleClose={handleCloseModal} />
             </div>
         </>
     );
 };
 
-export default AppPost;
+export default PostTable;

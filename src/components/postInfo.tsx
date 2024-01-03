@@ -24,6 +24,7 @@ interface Props {
 
 const PostInfoModal: React.FC<Props> = ({ post, show, handleClose }) => {
     if (!post) return null;
+    console.log("ok 1111:" , post);
     return (
         <Modal show={show} onHide={handleClose}>
             <Modal.Header closeButton>

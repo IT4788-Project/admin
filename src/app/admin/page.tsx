@@ -103,8 +103,10 @@ const App: React.FC = () => {
       },
     });
     const data = await response.json();
+    console.log(data);
     if (response.ok) {
       setUsersData(data);
+      console.log("userData:", usersData);
     }
   }
 
@@ -121,7 +123,7 @@ const App: React.FC = () => {
 
     if (response.ok) {
       setPostsData(data);
-      console.log("postData:",postsData);
+      console.log("postData:", postsData);
     }
   }
   const {

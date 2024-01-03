@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import { Table, Button, Form } from 'react-bootstrap';
 import { message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -35,6 +35,13 @@ const AppTable:  React.FC<Props> = (props) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [messageApi, contextHolder] = message.useMessage();
     const key = 'updatable';
+    useEffect(() => {
+
+
+
+        console.log("ok 1111:" ,  Array.isArray(blogs) && blogs.length > 0
+        );
+    }   , [blogs]);
 
     const openMessageSuccess = (text:string) => {
         messageApi.open({

@@ -178,7 +178,7 @@ const App: React.FC = () => {
 
                 {activeMenuItem === '6' && postsData ? (
                     <div>
-                      {/*<h3>Danh sách bài đăng</h3>*/}
+                      <h3>Danh sách bài đăng</h3>
                       <PostTable blogs={postsData} customFunction={reloadTableDataPost}/>
                     </div>
                 ) : null}

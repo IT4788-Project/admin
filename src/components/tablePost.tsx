@@ -28,11 +28,14 @@ interface Props {
     customFunction: () => void;
 }
 
-const PostTable:  React.FC<Props> = (props) => {
-    let token = getCookie('token');
-    const {blogs, customFunction } = props;
+const PostTable: React.FC<Props> = (props) => {
+    const token = getCookie('token');
+    const { blogs, customFunction } = props;
     const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
+    const [filteredPost, setFilteredPost] = useState<PostData[]>([]);
+    const [isFiltering, setIsFiltering] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isSorting, setIsSorting] = useState(false);
     const [messageApi, contextHolder] = message.useMessage();
 
     const openMessage = (type: 'success' | 'error', text: string) => {
@@ -52,6 +55,11 @@ const PostTable:  React.FC<Props> = (props) => {
         }, 500);
     };
 
+    const handleReset = () => {
+        setIsFiltering(false);
+        customFunction();
+    };
+
     const handlePostClick = (post: PostData) => {
         setSelectedPost(post);
     };
@@ -59,6 +67,39 @@ const PostTable:  React.FC<Props> = (props) => {
     const handleCloseModal = () => {
         setSelectedPost(null);
     };
+
+    const handleSort = async () => {
+        try {
+            setIsSorting(true);
+            const response = await fetch(`${config.apiUrl}/admin/sort/post/all`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                openMessage('error', 'Request failed');
+                return;
+            }
+
+            const data = await response.json();
+            const sortedData = [...data].sort((a, b) => {
+                return b.countReport - a.countReport;
+            });
+
+            setFilteredPost(sortedData);
+            setIsFiltering(true);
+            openMessage('success', 'Sắp xếp thành công');
+            customFunction();
+        } catch (error) {
+            openMessage('error', 'Sắp xếp thất bại');
+        } finally {
+            setIsSorting(false);
+        }
+    };
+
 
     const handleDeletePost = async (e: React.MouseEvent, post: PostData) => {
         e.stopPropagation();
@@ -81,11 +122,15 @@ const PostTable:  React.FC<Props> = (props) => {
 
             if (!response.ok) {
                 openMessage('error', 'Request failed');
+                return;
             }
 
-            const deletedUser = await response.json();
-            openMessage('success', deletedUser);
+            await response.json();
+            openMessage('success', 'Xóa bài đăng thành công');
             customFunction();
+            if(isFiltering){
+                handleSort();
+            }
         } catch (error) {
             openMessage('error', 'Xóa bài đăng thất bại');
         } finally {
@@ -98,48 +143,115 @@ const PostTable:  React.FC<Props> = (props) => {
             {contextHolder}
             <div className="container mb-4">
                 <div className="row">
-                    <div className="col">
-                        <h1 className="text-center">Danh sách bài đăng</h1>
+                    <div className="col-md-6">
+                        <FontAwesomeIcon icon={faFilter} />Bộ lọc
+                    </div>
+                    <div className="col-md-6 d-flex justify-content-end">
+                        <div>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={handleSort}
+                                disabled={isSorting}
+                            >
+
+                                {isSorting ? 'Sorting...' : ' Tốp 10'}
+                            </Button>{' '}
+                            <Button variant="secondary" size="sm" onClick={handleReset}>
+                                Reset
+                            </Button>
+                        </div>
                     </div>
                 </div>
-                <Table striped bordered hover className="custom-table">
-                    <thead>
-                    <tr>
-                        <th style={{display: 'flex', justifyContent: 'center'}}>STT</th>
-                        <th style={{display: 'flex', justifyContent: 'center'}}>Nội dung</th>
-                        <th style={{display: 'flex', justifyContent: 'center'}}>Số like</th>
-                        <th style={{display: 'flex', justifyContent: 'center'}}>Số báo cáo</th>
-                        <th style={{display: 'flex', justifyContent: 'center'}}>Xóa bài đăng</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {Array.isArray(blogs) && blogs.length > 0 ? (
-                        blogs.map((blog, index) => (
+            </div>
+
+            <Table striped bordered hover className="custom-table">
+                <thead>
+                <tr>
+                    <th>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>STT</div>
+                    </th>
+                    <th>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>Nội dung</div>
+                    </th>
+                    <th>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>Số like</div>
+                    </th>
+                    <th>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>Số báo cáo</div>
+                    </th>
+                    <th>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>Hành động</div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {isFiltering
+                    ? filteredPost.map((blog, index) => (
                             <tr key={index} onClick={() => handlePostClick(blog)}>
-                                <td style={{display: 'flex', justifyContent: 'center'}}>{index + 1}</td>
-                                <td style={{display: 'flex', justifyContent: 'center'}}>{blog.content}</td>
-                                <td style={{display: 'flex', justifyContent: 'center'}}>{blog.countLike}</td>
-                                <td style={{display: 'flex', justifyContent: 'center'}}>{blog.countReport}</td>
-                                <td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>{index + 1}</div>
+                            </td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.content}</div>
+                            </td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.countLike}</div>
+                            </td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.countReport}</div>
+                            </td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                                     <Button
                                         variant="danger"
+                                        size="sm"
                                         onClick={(e) => handleDeletePost(e, blog)}
                                         disabled={isDeleting}
                                     >
-                                        Xóa bài đăng
+                                        {isDeleting ? 'Deleting...' : 'Xoá tài khoản'}
                                     </Button>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan={5}>Loading...</td>
+                                </div>
+                            </td>
                         </tr>
-                    )}
-                    </tbody>
-                </Table>
-                <PostInfoModal post={selectedPost} show={selectedPost !== null} handleClose={handleCloseModal} />
-            </div>
+                    ))
+                    :Array.isArray(blogs) && blogs.length > 0 ? (
+                    blogs.map((blog, index) => (
+                        <tr key={index} onClick={() => handlePostClick(blog)}>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>{index + 1}</div>
+                            </td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.content}</div>
+                            </td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.countLike}</div>
+                            </td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>{blog.countReport}</div>
+                            </td>
+                            <td>
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                                    <Button
+                                        variant="danger"
+                                        size="sm"
+                                        onClick={(e) => handleDeletePost(e, blog)}
+                                        disabled={isDeleting}
+                                    >
+                                        {isDeleting ? 'Deleting...' : 'Xoá tài khoản'}
+                                    </Button>
+                                </div>
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td colSpan={5}>Loading...</td>
+                    </tr>
+                )}
+                </tbody>
+            </Table>
+            <PostInfoModal post={selectedPost} show={selectedPost !== null} handleClose={handleCloseModal} />
         </>
     );
 };

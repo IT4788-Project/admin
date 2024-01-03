@@ -169,8 +169,8 @@ const AppTable:  React.FC<Props> = (props) => {
             if (!response.ok) {
                 // throw new Error(`Request failed with status ${response.status}`);
                 openMessageError(`Request failed`);
+                return;
             }
-
             const updatedUser = await response.json();
             openMessageSuccess(updatedUser);
             customFunction();

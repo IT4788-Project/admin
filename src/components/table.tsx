@@ -202,7 +202,6 @@ const AppTable:  React.FC<Props> = (props) => {
                 // throw new Error(`Request failed with status ${response.status}`);
                 openMessageError(`Request failed`);
             }
-
             const deletedUser = await response.json();
             openMessageSuccess( deletedUser);
             customFunction();

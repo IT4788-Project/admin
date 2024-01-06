@@ -14,8 +14,6 @@ import {
 import type { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import { useRouter } from 'next/navigation'
-import { getCookie } from '@/getCookie/getCookie';
-import deleteCookie from '@/getCookie/deleteCookie';
 import AppTable from '@/components/table';
 import PostTable from '@/components/tablePost';
 const { Header, Content, Footer, Sider } = Layout;
@@ -72,7 +70,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkTokenValidity = async () => {
       try {
-        const token = getCookie('token');
+        let token = localStorage.getItem('token');
         const response = await fetch(`${config.apiUrl}/admin/auth/me`,{
           method: 'GET',
           headers: {
@@ -95,7 +93,7 @@ const App: React.FC = () => {
   }, [router]);
 
   const reloadTableData = async () => {
-    const token = getCookie('token');
+    let token = localStorage.getItem('token');
     const response = await fetch(`${config.apiUrl}/admin/allUser`, {
       method: 'GET',
       headers: {
@@ -111,7 +109,7 @@ const App: React.FC = () => {
   }
 
   const reloadTableDataPost = async () => {
-    const token = getCookie('token');
+    let token = localStorage.getItem('token');
     const response = await fetch(`${config.apiUrl}/admin/allPost/report`, {
       method: 'GET',
       headers: {
@@ -133,7 +131,7 @@ const App: React.FC = () => {
   const handleClick = ({ key }: { key: React.Key }) => {
     setActiveMenuItem(key.toString());
     if (key === '3') {
-      deleteCookie('token');
+      localStorage.clear();
       router.push('/login');
     } else if (key === '5') {
       reloadTableData();

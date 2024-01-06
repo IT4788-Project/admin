@@ -4,7 +4,6 @@ import { message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter } from '@fortawesome/free-solid-svg-icons';
 import UserInfoModal from './userInfoModal';
-import { getCookie } from '@/getCookie/getCookie';
 import { config } from '@/config/config';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import PostInfoModal from './postInfo';
@@ -29,7 +28,7 @@ interface Props {
 }
 
 const PostTable: React.FC<Props> = (props) => {
-    const token = getCookie('token');
+    let token = localStorage.getItem('token');
     const { blogs, customFunction } = props;
     const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
     const [filteredPost, setFilteredPost] = useState<PostData[]>([]);

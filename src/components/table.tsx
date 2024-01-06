@@ -4,7 +4,7 @@ import { message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter} from '@fortawesome/free-solid-svg-icons';
 import UserInfoModal from './userInfoModal';
-import { getCookie } from '@/getCookie/getCookie';
+
 import { config } from '@/config/config';
 import 'bootstrap/dist/css/bootstrap.min.css';
 interface UserData{
@@ -27,7 +27,7 @@ interface Props {
 }
 
 const AppTable:  React.FC<Props> = (props) => {
-    let token = getCookie('token');
+    let token = localStorage.getItem('token');
     const { blogs, customFunction } = props;
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
     const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
@@ -36,9 +36,6 @@ const AppTable:  React.FC<Props> = (props) => {
     const [messageApi, contextHolder] = message.useMessage();
     const key = 'updatable';
     useEffect(() => {
-
-
-
         console.log("ok 1111:" ,  Array.isArray(blogs) && blogs.length > 0
         );
     }   , [blogs]);
@@ -172,7 +169,7 @@ const AppTable:  React.FC<Props> = (props) => {
                 return;
             }
             const updatedUser = await response.json();
-            openMessageSuccess(updatedUser);
+            openMessageSuccess("Cập nhật thành công");
             customFunction();
             if(isFiltering){
                 handleSearch();
@@ -197,13 +194,12 @@ const AppTable:  React.FC<Props> = (props) => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
             if (!response.ok) {
-                // throw new Error(`Request failed with status ${response.status}`);
-                openMessageError(`Request failed`);
+                openMessageError("Bạn không có quyền xoá tài khoản này");
+                return;
             }
             const deletedUser = await response.json();
-            openMessageSuccess( deletedUser);
+            openMessageSuccess( "Xoá tài khoản thành công");
             customFunction();
             if(isFiltering){
                 handleSearch();

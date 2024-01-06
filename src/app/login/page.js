@@ -177,32 +177,6 @@ const Paragraph = styled.p`
   margin: 20px 0 30px
  `;
 
-
-function setCookie(cname, cvalue, exdays) {
-  const d = new Date();
-  d.setTime(d.getTime() + 3 * 24 * 60 * 60 * 1000);
-  const expires = "expires=" + d.toUTCString();
-  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-}
-
-function getCookie(cname) {
-  const name = cname + "=";
-  const decodedCookie = decodeURIComponent(document.cookie);
-  const ca = decodedCookie.split(';');
-
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) === ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) === 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-
-  return "";
-}
-
 export default function Page() {
   const router = useRouter();
   const [messageApi, contextHolder] = message.useMessage();
@@ -329,7 +303,8 @@ export default function Page() {
       }
       else if (statusText == 'OK') {
         const responseData = await response.json();
-        setCookie('token', responseData.token, 1);
+        localStorage.setItem('token', responseData.token);
+        localStorage.setItem('fullName', responseData.fullName);
         openMessageSuccess('Đăng nhập thành công, tự động chuyển trang admin');
         router.push('/admin');
 

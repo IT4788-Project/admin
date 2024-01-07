@@ -2,9 +2,8 @@
 import React, { useState, FormEvent } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import { getCookie } from '@/getCookie/getCookie';
 import { useRouter } from 'next/navigation'
-import deleteCookie from '@/getCookie/deleteCookie';
+
 import { config } from '@/config/config';
 import styled from 'styled-components';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -34,7 +33,7 @@ function BasicExample() {
     // Gửi thông tin mật khẩu đến API
     try {
 
-      const token = getCookie('token');
+      const token = localStorage.getItem('token');
       const response = await fetch(`${config.apiUrl}/admin/changePassword`, {
         method: 'PUT',
         headers: {

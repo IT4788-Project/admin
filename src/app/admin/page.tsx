@@ -105,6 +105,8 @@ const App: React.FC = () => {
     if (response.ok) {
       setUsersData(data);
       console.log("userData:", usersData);
+    }else{
+        setUsersData(null);
     }
   }
 
@@ -122,6 +124,8 @@ const App: React.FC = () => {
     if (response.ok) {
       setPostsData(data);
       console.log("postData:", postsData);
+    }else{
+      setPostsData(null);
     }
   }
   const {

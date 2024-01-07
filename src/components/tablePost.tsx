@@ -3,7 +3,7 @@ import { Table, Button } from 'react-bootstrap';
 import { message } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter } from '@fortawesome/free-solid-svg-icons';
-import UserInfoModal from './userInfoModal';
+
 import { config } from '@/config/config';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import PostInfoModal from './postInfo';
@@ -21,12 +21,10 @@ interface PostData {
     withUserId: number | null;
     author: number | null;
 }
-
 interface Props {
     blogs: PostData[] | null;
     customFunction: () => void;
 }
-
 const PostTable: React.FC<Props> = (props) => {
     let token = localStorage.getItem('token');
     const { blogs, customFunction } = props;
@@ -36,37 +34,47 @@ const PostTable: React.FC<Props> = (props) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSorting, setIsSorting] = useState(false);
     const [messageApi, contextHolder] = message.useMessage();
-
-    const openMessage = (type: 'success' | 'error', text: string) => {
+    const key = 'updatable';
+    const openMessageSuccess = (text:string) => {
         messageApi.open({
-            key: 'updatable',
+            key,
             type: 'loading',
             content: 'Loading...',
         });
-
         setTimeout(() => {
             messageApi.open({
-                key: 'updatable',
-                type,
+                key,
+                type:'success',
                 content: text,
                 duration: 2,
             });
         }, 500);
     };
-
+    const openMessageError = (text:string) => {
+        messageApi.open({
+            key,
+            type: 'loading',
+            content: 'Loading...',
+        });
+        setTimeout(() => {
+            messageApi.open({
+                key,
+                type:'error',
+                content: text,
+                duration: 2,
+            });
+        }, 500);
+    };
     const handleReset = () => {
         setIsFiltering(false);
         customFunction();
     };
-
     const handlePostClick = (post: PostData) => {
         setSelectedPost(post);
     };
-
     const handleCloseModal = () => {
         setSelectedPost(null);
     };
-
     const handleSort = async () => {
         try {
             setIsSorting(true);
@@ -79,7 +87,7 @@ const PostTable: React.FC<Props> = (props) => {
             });
 
             if (!response.ok) {
-                openMessage('error', 'Request failed');
+                openMessageError('Request failed')
                 return;
             }
 
@@ -87,29 +95,24 @@ const PostTable: React.FC<Props> = (props) => {
             const sortedData = [...data].sort((a, b) => {
                 return b.countReport - a.countReport;
             });
-
             setFilteredPost(sortedData);
             setIsFiltering(true);
-            openMessage('success', 'Sắp xếp thành công');
+            openMessageSuccess( "Sắp xếp thành công");
             customFunction();
         } catch (error) {
-            openMessage('error', 'Sắp xếp thất bại');
+            openMessageError('Sorting failed')
         } finally {
             setIsSorting(false);
         }
     };
 
-
     const handleDeletePost = async (e: React.MouseEvent, post: PostData) => {
         e.stopPropagation();
         const userConfirmed = window.confirm(`Bạn có chắc muốn xóa bài đăng ${post.id}`);
-
         if (!userConfirmed) {
             return;
         }
-
         setIsDeleting(true);
-
         try {
             const response = await fetch(`${config.apiUrl}/admin/deletePost/${post.id}`, {
                 method: 'DELETE',
@@ -120,23 +123,22 @@ const PostTable: React.FC<Props> = (props) => {
             });
 
             if (!response.ok) {
-                openMessage('error', 'Request failed');
+                openMessageError('Request failed')
                 return;
             }
 
             await response.json();
-            openMessage('success', 'Xóa bài đăng thành công');
+            openMessageSuccess( "Xoá tài khoản thành công");
             customFunction();
             if(isFiltering){
                 handleSort();
             }
         } catch (error) {
-            openMessage('error', 'Xóa bài đăng thất bại');
+            openMessageError('Delete failed')
         } finally {
             setIsDeleting(false);
         }
     };
-
     return (
         <>
             {contextHolder}
@@ -163,7 +165,6 @@ const PostTable: React.FC<Props> = (props) => {
                     </div>
                 </div>
             </div>
-
             <Table striped bordered hover className="custom-table">
                 <thead>
                 <tr>

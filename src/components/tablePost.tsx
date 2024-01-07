@@ -75,6 +75,7 @@ const PostTable: React.FC<Props> = (props) => {
     const handleCloseModal = () => {
         setSelectedPost(null);
     };
+    console.log("hahaha")
     const handleSort = async () => {
         try {
             setIsSorting(true);
@@ -85,7 +86,6 @@ const PostTable: React.FC<Props> = (props) => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
             if (!response.ok) {
                 openMessageError('Request failed')
                 return;

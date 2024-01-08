@@ -67,7 +67,9 @@ const PostTable: React.FC<Props> = (props) => {
     };
     const handleReset = () => {
         setIsFiltering(false);
+        openMessageSuccess( "Reset thành công");
         customFunction();
+
     };
     const handlePostClick = (post: PostData) => {
         setSelectedPost(post);
@@ -108,7 +110,7 @@ const PostTable: React.FC<Props> = (props) => {
 
     const handleDeletePost = async (e: React.MouseEvent, post: PostData) => {
         e.stopPropagation();
-        const userConfirmed = window.confirm(`Bạn có chắc muốn xóa bài đăng ${post.id}`);
+        const userConfirmed = window.confirm(`Bạn có chắc muốn xóa bài đăng ${post.content}`);
         if (!userConfirmed) {
             return;
         }
@@ -126,7 +128,6 @@ const PostTable: React.FC<Props> = (props) => {
                 openMessageError('Request failed')
                 return;
             }
-
             await response.json();
             openMessageSuccess( "Xoá tài khoản thành công");
             customFunction();
@@ -181,7 +182,7 @@ const PostTable: React.FC<Props> = (props) => {
                         <div style={{ display: 'flex', justifyContent: 'center' }}>Số báo cáo</div>
                     </th>
                     <th>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>Hành động</div>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>Xoá bài đăng</div>
                     </th>
                 </tr>
                 </thead>
@@ -209,7 +210,7 @@ const PostTable: React.FC<Props> = (props) => {
                                         onClick={(e) => handleDeletePost(e, blog)}
                                         disabled={isDeleting}
                                     >
-                                        {isDeleting ? 'Deleting...' : 'Xoá tài khoản'}
+                                        {isDeleting ? 'Deleting...' : 'Xoá bài đăng'}
                                     </Button>
                                 </div>
                             </td>
@@ -238,7 +239,7 @@ const PostTable: React.FC<Props> = (props) => {
                                         onClick={(e) => handleDeletePost(e, blog)}
                                         disabled={isDeleting}
                                     >
-                                        {isDeleting ? 'Deleting...' : 'Xoá tài khoản'}
+                                        {isDeleting ? 'Deleting...' : 'Xoá bài đăng'}
                                     </Button>
                                 </div>
                             </td>

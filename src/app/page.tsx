@@ -6,4 +6,4 @@ export default function Page() {
   return(
     router.push('/admin')
     )
-  }
+}

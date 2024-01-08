@@ -159,7 +159,7 @@ const App: React.FC = () => {
           </Sider>
           <Layout>
             <Header style={{ padding: '10px 20px', background: colorBgContainer }}>
-              <h3>Chào mừng {adminData?.fullName} đến với trang quản trị</h3>
+              <h3>Chào mừng {localStorage.getItem('fullName')} đến với trang quản trị</h3>
             </Header>
             <Content style={{margin: '0 16px'}}>
               <Breadcrumb style={{margin: '10px 0'}}></Breadcrumb>

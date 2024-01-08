@@ -384,12 +384,9 @@ openMessageError('Bạn không được phép sử dụng tính năng này')
                 value={formData.passWord}
                 onChange={handleInputChange}
               />
-
-              <Anchor href='#'>Quên mật khẩu?</Anchor>
               <Button type='submit'>Đăng nhập</Button>
             </Form>
           </SignInContainer>
-
           <OverlayContainer $signinIn={signIn}>
             <Overlay $signinIn={signIn}>
               <LeftOverlayPanel $signinIn={signIn}>

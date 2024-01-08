@@ -129,7 +129,7 @@ const PostTable: React.FC<Props> = (props) => {
                 return;
             }
             await response.json();
-            openMessageSuccess( "Xoá tài khoản thành công");
+            openMessageSuccess( "Xoá bài đăng thành công");
             customFunction();
             if(isFiltering){
                 handleSort();
